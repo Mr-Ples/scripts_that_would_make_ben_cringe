@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+import fire as _fire
+
+import temp as _temp
+from meditation_timer import bell_sound as _bell_sound
+from playstore_scraper import get_playstore_latest_version as _get_playstore_latest_version
+
+
+def playstore_commit():
+    """
+    Gets the latest version of MoMi from playstore.
+    Saves it to a file for AutoKey.
+    """
+    _get_playstore_latest_version.main()
+
+
+def meditate(total: int = 60*60, interval: int = 60 * 15):
+    """
+    Meditation timer.
+        - plays background sound
+        - plays bel at given interval
+        - counts down time between each interval
+        - tapping enter indicates mind wandering
+
+    :param total: total meditaion time in minutes. Defaults to 1 Hour
+    :param interval: bell interval in minutes. Defaults to 15 mins
+    """
+    _bell_sound.main(total, interval)
+
+
+def temp(*args, **kwargs):
+    """Temporary scripts run here"""
+    _temp.main(*args, **kwargs)
+
+
+def _main():
+    _fire.Fire()
+
+
+def _setup():
+    pass
+
+
+def _teardown():
+    pass
+    # for reader in _env.LOG_READERS:
+    #     reader.kill()
+
+
+if __name__ == "__main__":
+    _setup()
+    try:
+        _main()
+    except Exception as err:
+        raise
+        # if 'find cheat method' in str(err):
+        #     _safe_logging.log("\n\tCould not find cheat method, ensure spelling is correct + the cheat is on the current build\n")
+        # else:
+        #     _traceback.print_exc()
+    _teardown()

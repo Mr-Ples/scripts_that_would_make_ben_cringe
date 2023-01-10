@@ -5,33 +5,33 @@ from concurrent.futures import ThreadPoolExecutor
 import pyautogui
 from playsound import playsound
 
+from lib import env
+
 MOVE_MOUSE_INTERVAL = 60 * 3
-TOTAL_TIME = 60 * 60  # 1 hour
-BELL_INTERVAL = 60 * 15  # 15 mins
 THREAD_POOL = ThreadPoolExecutor(None)
 START = time.time()
 
-BACKGROUND_SOUND = os.path.join(os.getcwd(), '1hour-brown-noise.mp3')
-BELL_SOUND = os.path.join(os.getcwd(), 'Meditation-bell-sound.mp3')
-
+BACKGROUND_SOUND = os.path.join(env.REPO_PATH, 'meditation_timer', '1hour-brown-noise.mp3')
+BELL_SOUND = os.path.join(env.REPO_PATH, 'meditation_timer', 'Meditation-bell-sound.mp3')
 pyautogui.FAILSAFE = False
 
 
-def move_mouse(interval: int = MOVE_MOUSE_INTERVAL):
+def move_mouse(total: int, interval: int = MOVE_MOUSE_INTERVAL):
     """
     Moves the mouse every x seconds to avoid the pc from fallings asleep.
     """
 
     start = time.time()
-    while time.time() - START < TOTAL_TIME:
+    while time.time() - START < total:
         if time.time() - start >= interval:
-            for i in range(0, 100):
-                pyautogui.moveTo(0, i * 5)
+            # for i in range(0, 100):
+            #     pyautogui.moveTo(0, i * 5)
+            pyautogui.moveTo(0, 15)
             start = time.time()
 
 
-def background_sound():
-    for _ in range(int(TOTAL_TIME / 60) or 2):
+def background_sound(total: int):
+    for _ in range(int(total / 60) or 2):
         playsound(BACKGROUND_SOUND)
 
 
@@ -43,23 +43,38 @@ def counter(_round_index: int):
         print(f"Round: {_round_index}. Time Remaining: {int(m)}:{'0' + str(int(s)) if int(s) < 10 else int(s)}")
 
 
-def bell_sounds():
-    for round_index in range(1, int(TOTAL_TIME / BELL_INTERVAL) + 1):
+def bell_sounds(total: int, interval: int):
+    for round_index in range(1, int(total / interval) + 1):
         THREAD_POOL.submit(lambda: playsound(BELL_SOUND))
         counter(round_index)
 
 
-THREAD_POOL.submit(lambda: background_sound())
-_ = input('Press enter when you have warmed up to start the timer.\n\n')
-THREAD_POOL.submit(lambda: bell_sounds())
-THREAD_POOL.submit(lambda: move_mouse())
+def main(total: int = 60 * 60, interval: int = 60 * 15):
+    """
+    Meditation timer.
+        - plays background sound
+        - plays bel at given interval
+        - counts down time between each interval
+        - tapping enter indicates mind wandering
 
-index = 0
-while time.time() - START < TOTAL_TIME:
-    _ = input('Mind wandering?\n\n')
+    :param total: total meditaion time in minutes. Defaults to 1 Hour
+    :param interval: bell interval in minutes. Defaults to 15 mins
+    """
+    THREAD_POOL.submit(lambda: background_sound(total))
+    _ = input('Press enter when you have warmed up to start the timer.\n\n')
+    THREAD_POOL.submit(lambda: bell_sounds(total, interval))
+    THREAD_POOL.submit(lambda: move_mouse(total))
 
-    index += 1
-    mind_wandering_ave_interval = int(((time.time() - START) / 60) / index)
-    m, s = divmod(time.time() - START, 60)
+    index = 0
+    while time.time() - START < total:
+        _ = input('Mind wandering?\n\n')
 
-    print(f"\nMind wandered {index} time(s) in {int(m)}:{'0' + str(int(s)) if int(s) < 10 else int(s)}. Mind Wandering Interval: every {mind_wandering_ave_interval}min(s)\n")
+        index += 1
+        mind_wandering_ave_interval = int(((time.time() - START) / 60) / index)
+        m, s = divmod(time.time() - START, 60)
+
+        print(f"\nMind wandered {index} time(s) in {int(m)}:{'0' + str(int(s)) if int(s) < 10 else int(s)}. Mind Wandering Interval: every {mind_wandering_ave_interval}min(s)\n")
+
+
+if __name__ == "__main__":
+    main()
