@@ -12,7 +12,7 @@ def main():
         country='us'  # defaults to 'us'
     )
 
-    with open(os.path.join(env.REPO_PATH, 'playstore_scaper', 'data', 'MomiVersion.txt'), 'w+') as file:
+    with open(os.path.join(env.REPO_PATH, 'playstore_scraper', 'data', 'MomiVersion.txt'), 'w+') as file:
         file.write(result['version'])
 
     print(result['version'])
