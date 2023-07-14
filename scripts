@@ -4,6 +4,7 @@ import fire as _fire
 import temp as _temp
 from meditation_timer import bell_sound as _bell_sound
 from playstore_scraper import get_playstore_latest_version as _get_playstore_latest_version
+from sms import print_inbox as _print_inbox
 
 
 def playstore_commit():
@@ -14,7 +15,7 @@ def playstore_commit():
     _get_playstore_latest_version.main()
 
 
-def meditate(total: int = 60*60, interval: int = 60 * 15):
+def meditate(total: int = 60 * 60, interval: int = 60 * 15):
     """
     Meditation timer.
         - plays background sound
@@ -26,6 +27,17 @@ def meditate(total: int = 60*60, interval: int = 60 * 15):
     :param interval: bell interval in minutes. Defaults to 15 mins
     """
     _bell_sound.main(total, interval)
+
+
+class sms:
+    def __init__(self):
+        pass
+
+    def inbox(self, total: int = 60 * 60, interval: int = 60 * 15):
+        """
+        Print SMS inbox for number 
+        """
+        _print_inbox.main()
 
 
 def temp(*args, **kwargs):
