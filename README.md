@@ -17,7 +17,5 @@ ln -s $PWD/scripts $HOME/.local/bin
 ### Bash Completions
 
 ```bash
-scripts -- --completion >  /tmp/comp.sh
-sudo chmod +x /tmp/comp.sh
-source /tmp/comp.sh
+. ./completions.sh 
 ```

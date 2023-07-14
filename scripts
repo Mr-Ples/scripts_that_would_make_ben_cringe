@@ -30,9 +30,7 @@ def meditate(total: int = 60 * 60, interval: int = 60 * 15):
 
 
 class sms:
-    def __init__(self):
-        pass
-
+    """Twilio SMS functions"""
     def inbox(self, total: int = 60 * 60, interval: int = 60 * 15):
         """
         Print SMS inbox for number 
