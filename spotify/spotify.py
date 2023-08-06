@@ -120,9 +120,13 @@ def play_uncategorized():
         while track == currently_playing:
             try:
                 current_playlists = sp.current_user_playlists()
-                playlists = {index + 1: {'id': item['id'], 'name': item['name']} for index, item in enumerate(current_playlists['items'])}
+                playlists = {index + 1: {'id': item['id'], 'name': item['name']} for index, item in enumerate(current_playlists['items'][:5])}
                 print(json.dumps(playlists, indent=4))
-                user_input = inputimeout(prompt='Pick a playlist: \n', timeout=5)
+                track_data = sp.tracks([track])['tracks'][0]
+                print(track_data['name'], " - ", track_data['artists'][0]['name'])
+                user_input = inputimeout(prompt='Pick a playlist: \n', timeout=30)
+                if 'ss' in user_input:
+                    continue
                 if 's' in user_input:
                     break
                 if user_input.isdecimal():
