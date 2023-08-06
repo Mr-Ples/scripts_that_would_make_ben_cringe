@@ -7,12 +7,13 @@ from playstore_scraper import get_playstore_latest_version as _get_playstore_lat
 from sms import print_inbox as _print_inbox
 from spotify import spotify as _spotify
 
+
 def spotify():
     """
-    Gets the latest version of MoMi from playstore.
-    Saves it to a file for AutoKey.
+    Plays random song from uncategorized playlist
     """
     _spotify.main()
+
 
 def playstore_commit():
     """
@@ -38,6 +39,7 @@ def meditate(total: int = 60 * 60, interval: int = 60 * 15):
 
 class sms:
     """Twilio SMS functions"""
+
     def inbox(self, total: int = 60 * 60, interval: int = 60 * 15):
         """
         Print SMS inbox for number 

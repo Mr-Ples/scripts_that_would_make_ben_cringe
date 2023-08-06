@@ -15,7 +15,6 @@ logs_path = '/home/simonl/meditation_logs/meditation_timer/logs/'
 os.makedirs(logs_path, exist_ok=True)
 today = datetime.datetime.now().strftime("%Y-%m-%d")
 log_path = os.path.join(env.REPO_PATH, logs_path, f'{today}.log')
-print(log_path)
 targets = logging.StreamHandler(sys.stdout), logging.FileHandler(log_path, 'a+')
 logging.basicConfig(format='%(message)s', level=logging.INFO, handlers=targets)
 
