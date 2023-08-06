@@ -1,11 +1,23 @@
 import os
 import time
+import logging
+import sys
+import datetime
+
 from concurrent.futures import ThreadPoolExecutor
 
 import pyautogui
 from playsound import playsound
 
 from lib import env
+
+logs_path = 'meditation_timer/logs/'
+os.makedirs(logs_path, exist_ok=True)
+today = datetime.datetime.now().strftime("%Y-%m-%d")
+log_path = os.path.join(env.REPO_PATH, logs_path, f'{today}.log')
+print(log_path)
+targets = logging.StreamHandler(sys.stdout), logging.FileHandler(log_path, 'a+')
+logging.basicConfig(format='%(message)s', level=logging.INFO, handlers=targets)
 
 MOVE_MOUSE_INTERVAL = 60 * 3
 THREAD_POOL = ThreadPoolExecutor(None)
@@ -40,7 +52,7 @@ def counter(_round_index: int):
     while time.time() - start < 60 * 15:
         time.sleep(1)
         m, s = divmod(60 * 15 - (time.time() - start), 60)
-        print(f"Round: {_round_index}. Time Remaining: {int(m)}:{'0' + str(int(s)) if int(s) < 10 else int(s)}")
+        logging.info(f"Round: {_round_index}. Time Remaining: {int(m)}:{'0' + str(int(s)) if int(s) < 10 else int(s)}")
 
 
 def bell_sounds(total: int, interval: int):
@@ -60,6 +72,8 @@ def main(total: int = 60 * 60, interval: int = 60 * 15):
     :param total: total meditaion time in minutes. Defaults to 1 Hour
     :param interval: bell interval in minutes. Defaults to 15 mins
     """
+
+    logging.info("\n\nStarting session\n\n")
     THREAD_POOL.submit(lambda: background_sound(total))
     _ = input('Press enter when you have warmed up to start the timer.\n\n')
     THREAD_POOL.submit(lambda: bell_sounds(total, interval))
@@ -73,7 +87,7 @@ def main(total: int = 60 * 60, interval: int = 60 * 15):
         mind_wandering_ave_interval = int(((time.time() - START) / 60) / index)
         m, s = divmod(time.time() - START, 60)
 
-        print(f"\nMind wandered {index} time(s) in {int(m)}:{'0' + str(int(s)) if int(s) < 10 else int(s)}. Mind Wandering Interval: every {mind_wandering_ave_interval}min(s)\n")
+        logging.info(f"\nMind wandered {index} time(s) in {int(m)}:{'0' + str(int(s)) if int(s) < 10 else int(s)}. Mind Wandering Interval: every {mind_wandering_ave_interval}min(s)\n")
 
 
 if __name__ == "__main__":
