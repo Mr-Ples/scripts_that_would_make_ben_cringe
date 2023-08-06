@@ -52,7 +52,7 @@ def update_uncategorized_playlist():
     except:
         playlist = sp.user_playlist_create(USER_ID, 'Uncategorized')
         print("NEW ID:", playlist['id'])
-        set_key(env.ENV_PATH, playlist['id'], os.environ["SPOTIFY_UNCATEGORIZED_PLAYLIST_ID"])
+        set_key(env.ENV_PATH, "SPOTIFY_UNCATEGORIZED_PLAYLIST_ID", playlist['id'])
 
     with open(ADDED_TRACKS, 'r') as f:
         added_tracks = [track.strip() for track in f.readlines()]
@@ -93,7 +93,9 @@ def refresh_token():
 
     # Extract the new access token from the response
     access_token = response.json()['access_token']
-    set_key(env.ENV_PATH, access_token, os.environ["SPOTIFY_ACCESS_TOKEN"])
+    print(access_token)
+    set_key(env.ENV_PATH, "SPOTIFY_ACCESS_TOKEN", access_token)
+    return True
 
 
 def play_uncategorized():
@@ -119,6 +121,7 @@ def play_uncategorized():
 
         while track == currently_playing:
             try:
+                currently_playing = sp.currently_playing()['item']['id']
                 current_playlists = sp.current_user_playlists()
                 playlists = {index + 1: {'id': item['id'], 'name': item['name']} for index, item in enumerate(current_playlists['items'][:5])}
                 print(json.dumps(playlists, indent=4))
@@ -139,8 +142,6 @@ def play_uncategorized():
                     sp.playlist_remove_all_occurrences_of_items(os.environ["SPOTIFY_UNCATEGORIZED_PLAYLIST_ID"], [track])
             except TimeoutOccurred:
                 continue
-
-            currently_playing = sp.currently_playing()['item']['id']
 
 
 def main():
@@ -181,5 +182,6 @@ if __name__ == "__main__":
         except Exception as err:
             if "access token expired" in str(err).lower():
                 if refresh_token():
+                    time.sleep(5)
                     continue
             raise
