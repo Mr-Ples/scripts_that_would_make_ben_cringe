@@ -1,3 +1,7 @@
 pyautogui
 google_play_scraper
 fire
+spotipy
+python-dotenv
+twilio
+inputimeout

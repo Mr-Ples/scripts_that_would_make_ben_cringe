@@ -5,7 +5,14 @@ import temp as _temp
 from meditation_timer import bell_sound as _bell_sound
 from playstore_scraper import get_playstore_latest_version as _get_playstore_latest_version
 from sms import print_inbox as _print_inbox
+from spotify import spotify as _spotify
 
+def spotify():
+    """
+    Gets the latest version of MoMi from playstore.
+    Saves it to a file for AutoKey.
+    """
+    _spotify.main()
 
 def playstore_commit():
     """
