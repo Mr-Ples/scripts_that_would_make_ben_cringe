@@ -6,7 +6,7 @@ import random
 import requests
 import json
 
-from dotenv import set_key
+from dotenv import set_key, load_dotenv
 from lib import env
 from inputimeout import inputimeout, TimeoutOccurred
 
@@ -16,6 +16,7 @@ sp = None
 USER_ID = "k3e1zpksc5stgc7l3hlqx2dd6"
 ADDED_TRACKS = os.path.join(env.REPO_PATH, 'spotify', 'added_tracks.txt')
 SAVED_TRACKS = os.path.join(env.REPO_PATH, 'spotify', 'saved_tracks.txt')
+PLAYHISTORY = []
 
 def get_all_saved_tracks():
     global sp
@@ -95,7 +96,6 @@ def refresh_token():
     access_token = response.json()['access_token']
     print(access_token)
     set_key(env.ENV_PATH, "SPOTIFY_ACCESS_TOKEN", access_token)
-    return True
 
 
 def play_uncategorized():
@@ -118,10 +118,28 @@ def play_uncategorized():
             print("Waiting for track to start")
             time.sleep(3)
             currently_playing = sp.currently_playing()['item']['id']
+        with open(os.path.join(env.REPO_PATH, 'spotify', 'play_history.txt'), 'r') as ff:
+            PLAYHISTORY = [elem.strip() for elem in ff.readlines()]
+
+        currently_playing_item = sp.currently_playing()['item']
+        currently_playing = currently_playing_item['id']
+        playing_pretty  = currently_playing_item['name'] + " - " + currently_playing_item['artists'][0]['name'] + "\n"
+        if not PLAYHISTORY or len(PLAYHISTORY) > 0 and PLAYHISTORY[-1] != playing_pretty:
+            with open(os.path.join(env.REPO_PATH, 'spotify', 'play_history.txt'), 'a+') as ff:
+                ff.write(playing_pretty) 
+                PLAYHISTORY.append(playing_pretty)
+        print("Currently playing:", playing_pretty)
 
         while track == currently_playing:
             try:
-                currently_playing = sp.currently_playing()['item']['id']
+                currently_playing_item = sp.currently_playing()['item']
+                currently_playing = currently_playing_item['id']
+                playing_pretty  = currently_playing_item['name'] + " - " + currently_playing_item['artists'][0]['name'] + "\n"
+                if not PLAYHISTORY or len(PLAYHISTORY) > 0 and PLAYHISTORY[-1] != playing_pretty:
+                    with open(os.path.join(env.REPO_PATH, 'spotify', 'play_history.txt'), 'a+') as ff:
+                        ff.write(playing_pretty)
+                        PLAYHISTORY.append(playing_pretty)
+                print("Currently playing:", playing_pretty)
                 current_playlists = sp.current_user_playlists()
                 playlists = {index + 1: {'id': item['id'], 'name': item['name']} for index, item in enumerate(current_playlists['items'][:5])}
                 print(json.dumps(playlists, indent=4))
@@ -145,12 +163,21 @@ def play_uncategorized():
 
 
 def main():
-    global sp
-
-    # Authenticate with Spotify
-    sp = spotipy.Spotify(auth=os.environ['SPOTIFY_ACCESS_TOKEN'])
-    # update_uncategorized_playlist() sd sd
-    play_uncategorized()
+    while True:
+        try:
+            global sp
+            # Authenticate with Spotify
+            sp = spotipy.Spotify(auth=os.environ['SPOTIFY_ACCESS_TOKEN'])
+            # update_uncategorized_playlist() sd sd
+            play_uncategorized()
+            break
+        except:
+            # if "access token expired" in str(err).lower():
+            refresh_token()
+            load_dotenv(env.ENV_PATH)
+            time.sleep(5)
+            continue
+    
 
     # # Start playing the songs
     # sp.add_to_queue(uri='5aQwKSYRyV1H44GsH3slJk')
@@ -178,10 +205,9 @@ if __name__ == "__main__":
     while True:
         try:
             main()
-            break
-        except Exception as err:
-            if "access token expired" in str(err).lower():
-                if refresh_token():
-                    time.sleep(5)
-                    continue
-            raise
+            # break
+        except:
+            # if "access token expired" in str(err).lower():
+            refresh_token()
+            time.sleep(5)
+            continue

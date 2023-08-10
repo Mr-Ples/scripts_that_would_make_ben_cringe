@@ -4,3 +4,4 @@ data
 logs/
 .env
 *.txt
+*.html
