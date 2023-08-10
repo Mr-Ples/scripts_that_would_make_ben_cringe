@@ -30,9 +30,11 @@ BELL_SOUND = os.path.join(env.REPO_PATH, 'meditation_timer', 'Meditation-bell-so
 pyautogui.FAILSAFE = False
 
 LATEST_WANDER_COUNT = 0
+ENDED = False
 
 
 def create_html_graph():
+    print("Creating html graph")
     files = os.listdir(logs_path)
 
     mind_wandering_data = {}
@@ -61,7 +63,7 @@ def create_html_graph():
         fig.add_trace(go.Bar(
             x=[date + "<br><br>" + time_string],
             y=[data['times']],
-            width=[data['duration']/1500],
+            width=[data['duration'] / 1500],
             marker_color='blue',
             orientation='v',
             showlegend=False,
@@ -82,7 +84,7 @@ def create_html_graph():
     # Save as HTML
     html_path = os.path.join(env.REPO_PATH, 'meditation_timer', 'mind_wandering_graph.html')
     fig.write_html(html_path)
-
+    print("Html graph created: ", html_path)
     html_lines = ''
     with open(html_path, "r") as f:
         html_lines = f.read()
@@ -103,9 +105,12 @@ def move_mouse(total: int, interval: int = MOVE_MOUSE_INTERVAL):
     """
     Moves the mouse every x seconds to avoid the pc from fallings asleep.
     """
+    global ENDED
 
     start = time.time()
     while time.time() - START < total:
+        if ENDED:
+            return
         if time.time() - start >= interval:
             # for i in range(0, 100):
             #     pyautogui.moveTo(0, i * 5)
@@ -119,8 +124,11 @@ def background_sound(total: int):
 
 
 def counter(_round_index: int):
+    global ENDED
     start = time.time()
     while time.time() - start < 60 * 15:
+        if ENDED:
+            return
         time.sleep(1)
         m, s = divmod(60 * 15 - (time.time() - start), 60)
         logging.info(f"Round: {_round_index}. Time Remaining: {int(m)}:{'0' + str(int(s)) if int(s) < 10 else int(s)}")
@@ -143,31 +151,41 @@ def main(total: int = 60 * 60, interval: int = 60 * 15):
     :param total: total meditaion time in minutes. Defaults to 1 Hour
     :param interval: bell interval in minutes. Defaults to 15 mins
     """
-    global LATEST_WANDER_COUNT
-    logging.info("\n\nStarting session\n\n")
-    THREAD_POOL.submit(lambda: background_sound(total))
-    _ = input('Press enter when you have warmed up to start the timer.\n\n')
-    THREAD_POOL.submit(lambda: bell_sounds(total, interval))
-    THREAD_POOL.submit(lambda: move_mouse(total))
 
-    index = 0
-    while time.time() - START < total:
-        _ = input('Mind wandering?\n\n')
+    global LATEST_WANDER_COUNT, ENDED
+    try:
+        logging.info("\n\nStarting session\n\n")
+        THREAD_POOL.submit(lambda: background_sound(total))
+        _ = input('Press enter when you have warmed up to start the timer.\n\n')
+        THREAD_POOL.submit(lambda: bell_sounds(total, interval))
+        THREAD_POOL.submit(lambda: move_mouse(total))
 
-        index += 1
-        mind_wandering_ave_interval = int(((time.time() - START) / 60) / index)
-        m, s = divmod(time.time() - START, 60)
-        LATEST_WANDER_COUNT = index
-        logging.info(f"\nMind wandered {index} time(s) in {int(m)}:{'0' + str(int(s)) if int(s) < 10 else int(s)}. Mind Wandering Interval: every {mind_wandering_ave_interval}min(s)\n")
+        index = 0
+        while time.time() - START < total:
+            _ = input('Mind wandering?\n\n')
+
+            index += 1
+            mind_wandering_ave_interval = int(((time.time() - START) / 60) / index)
+            m, s = divmod(time.time() - START, 60)
+            LATEST_WANDER_COUNT = index
+            logging.info(
+                f"\nMind wandered {index} time(s) in {int(m)}:{'0' + str(int(s)) if int(s) < 10 else int(s)}. Mind Wandering Interval: every {mind_wandering_ave_interval}min(s)\n")
+    except:
+        ENDED = True
+        logging.info("\n\nEnding session\n\n")
+        create_html_graph()
+        os.system('pkill -9 -f "python -m meditation_timer.bell_sound"')
+        os.system('pkill -9 -f meditate')
+        os._exit(1)
 
 
 if __name__ == "__main__":
-    # try:
-    #     main()
-    # except:
-    #     logging.info("\n\nEnding session\n\n")
-    #     THREAD_POOL.shutdown(wait=False)
-    #     create_html_graph()
-    #     os.system('pkill -9 -f "python -m meditation_timer.bell_sound"')
-    #     os._exit(1)
-    create_html_graph()
+    try:
+        main()
+    except:
+        logging.info("\n\nEnding session\n\n")
+        create_html_graph()
+        os.system('pkill -9 -f "python -m meditation_timer.bell_sound"')
+        os.system('pkill -9 -f meditate')
+        os._exit(1)
+    # create_html_graph()
