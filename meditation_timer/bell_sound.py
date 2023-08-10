@@ -41,17 +41,44 @@ def create_html_graph():
             lines = f.readlines()
             for line in reversed(lines):
                 if 'Mind wandered' in line:
-                    times = int(re.search(r'Mind wandered (\d+) ', line).group(1))
-                    mind_wandering_data[file.replace('.log', '')] = times
+                    matches = re.search(r'Mind wandered (\d+) time\(s\) in (\d+):(\d+)', line)
+
+                    if matches:
+                        times = int(matches.group(1))
+                        minutes = int(matches.group(2))
+                        seconds = int(matches.group(3))
+                        total_duration = minutes * 60 + seconds
+                    mind_wandering_data[file.replace('.log', '')] = {'times': times, 'duration': total_duration}
                     break
                 else:
-                    mind_wandering_data[file.replace('.log', '')] = 0
+                    mind_wandering_data[file.replace('.log', '')] = {'times': 0, 'duration': 15 * 60}
 
     # Create a bar chart
-    print(list(mind_wandering_data.keys()))
-    fig = go.Figure([go.Bar(x=list(mind_wandering_data.keys()), y=list(mind_wandering_data.values()))])
+    fig = go.Figure()
+    for date, data in mind_wandering_data.items():
+        m, s = divmod(data['duration'], 60)
+        time_string = str(m) + ":" + (str(s) if len(str(s)) > 1 else "0" + str(s)) + "mins"
+        fig.add_trace(go.Bar(
+            x=[date + "<br><br>" + time_string],
+            y=[data['times']],
+            width=[data['duration']/1800],
+            marker_color='blue',
+            orientation='v',
+            showlegend=False,
+            name=time_string
+        ))
+
     # Set titles
-    fig.update_layout(title_text='Mind Wandering', xaxis_title='Date', yaxis_title='Times', xaxis_type='category', height=800)
+    fig.update_layout(
+        title_text='Mind Wandering',
+        xaxis_title='Date/Duration',
+        yaxis_title='Times',
+        xaxis_type='category',
+        height=800
+    )
+    # fig = go.Figure([go.Bar(x=list(mind_wandering_data.keys()), y=list(mind_wandering_data.values()))])
+    # # Set titles
+    # fig.update_layout(title_text='Mind Wandering', xaxis_title='Date', yaxis_title='Times', xaxis_type='category', height=800)
     # Save as HTML
     html_path = os.path.join(env.REPO_PATH, 'meditation_timer', 'mind_wandering_graph.html')
     fig.write_html(html_path)
@@ -135,11 +162,12 @@ def main(total: int = 60 * 60, interval: int = 60 * 15):
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except:
-        logging.info("\n\nEnding session\n\n")
-        THREAD_POOL.shutdown(wait=False)
-        create_html_graph()
-        os.system('pkill -9 -f "python -m meditation_timer.bell_sound"')
-        os._exit(1)
+    # try:
+    #     main()
+    # except:
+    #     logging.info("\n\nEnding session\n\n")
+    #     THREAD_POOL.shutdown(wait=False)
+    #     create_html_graph()
+    #     os.system('pkill -9 -f "python -m meditation_timer.bell_sound"')
+    #     os._exit(1)
+    create_html_graph()
