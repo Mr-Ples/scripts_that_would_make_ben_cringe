@@ -14,7 +14,7 @@ from playsound import playsound
 
 from lib import env
 
-logs_path = '/home/simonl/meditation_logs/meditation_timer/logs/'
+logs_path = f'/home/{os.environ["USER"]}/meditation_logs/meditation_timer/logs/'
 os.makedirs(logs_path, exist_ok=True)
 today = datetime.datetime.now().strftime("%Y-%m-%d")
 log_path = os.path.join(env.REPO_PATH, logs_path, f'{today}.log')
