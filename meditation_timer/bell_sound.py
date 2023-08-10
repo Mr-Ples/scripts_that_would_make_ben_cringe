@@ -61,7 +61,7 @@ def create_html_graph():
         fig.add_trace(go.Bar(
             x=[date + "<br><br>" + time_string],
             y=[data['times']],
-            width=[data['duration']/1800],
+            width=[data['duration']/1500],
             marker_color='blue',
             orientation='v',
             showlegend=False,
